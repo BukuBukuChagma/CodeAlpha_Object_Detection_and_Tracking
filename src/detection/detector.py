@@ -4,7 +4,7 @@ import cv2
 import logging
 import os
 import shutil
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict, Optional, Union
 from pathlib import Path
 
 class YOLODetector:
@@ -46,6 +46,16 @@ class YOLODetector:
         except Exception as e:
             self.logger.error(f"Error loading YOLO model: {str(e)}")
             raise
+
+    def process_image(self, image_path: Union[str, Path], conf_threshold: float = 0.5) -> Tuple[np.ndarray, List[Dict]]:
+        """Process a single image."""
+        image = cv2.imread(str(image_path))
+        if image is None:
+            raise ValueError(f"Could not read image: {image_path}")
+        
+        detections = self.detect(image, conf_threshold)
+        annotated_image = self.draw_detections(image, detections)
+        return annotated_image, detections
 
     def detect(self, frame: np.ndarray, conf_threshold: float = 0.5) -> List[Dict]:
         """
