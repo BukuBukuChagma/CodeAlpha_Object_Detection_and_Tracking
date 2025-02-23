@@ -1,18 +1,17 @@
-from flask import Flask, request, jsonify, send_from_directory
+from .config import app  # Import from config
+from flask_socketio import SocketIO
+from flask import request, jsonify, send_from_directory
 from flask_cors import CORS
 import logging
 import time
 from pathlib import Path
 import cv2
+import uuid
 
 from .utils import FileHandler
 from ..detection_and_tracking.detector import YOLODetector
 from .tasks import process_video, celery
-
-app = Flask(__name__, 
-           static_folder='static',  # Set static folder
-           static_url_path='/static')  # Set URL path for static files
-CORS(app)  # Enable CORS for all domains
+from .socket_handler import socketio, active_streams, WebcamStream
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +20,18 @@ logger = logging.getLogger(__name__)
 # Initialize components
 file_handler = FileHandler()
 detector = YOLODetector()
+
+# Initialize SocketIO with Flask app
+socketio.init_app(app, 
+                 cors_allowed_origins="*",
+                 async_mode='threading',
+                 logger=True,
+                 engineio_logger=True,
+                 ping_timeout=5,
+                 ping_interval=1,
+                 transports=['websocket'],
+                 always_connect=True,
+                 path='socket.io')
 
 # Basic error handler
 @app.errorhandler(Exception)
@@ -241,5 +252,74 @@ def get_video_status(task_id):
             }
         }), 500
 
+@app.route('/api/v1/stream/start', methods=['POST'])
+def start_stream():
+    """Start webcam stream."""
+    try:
+        # Get parameters
+        conf_threshold = float(request.form.get('conf_threshold', 0.5))
+        
+        # Generate stream ID
+        stream_id = str(uuid.uuid4())
+        
+        # Create and start stream
+        stream = WebcamStream(
+            stream_id=stream_id,
+            detector=detector,
+            conf_threshold=conf_threshold
+        )
+        stream.start()
+        
+        # Store stream
+        active_streams[stream_id] = stream
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "stream_id": stream_id,
+                "stream_url": f"ws://{request.host}/stream"
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error starting stream: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "stream_error",
+                "message": str(e)
+            }
+        }), 500
+
+@app.route('/api/v1/stream/stop/<stream_id>', methods=['POST'])
+def stop_stream(stream_id):
+    """Stop webcam stream."""
+    try:
+        if stream_id not in active_streams:
+            raise ValueError(f"Stream {stream_id} not found")
+            
+        # Stop and remove stream
+        stream = active_streams[stream_id]
+        stream.stop()
+        del active_streams[stream_id]
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "stream_id": stream_id,
+                "status": "stopped"
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error stopping stream: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "stream_error",
+                "message": str(e)
+            }
+        }), 500
+
 if __name__ == '__main__':
-    app.run(debug=True) 
+    socketio.run(app, debug=True) 
