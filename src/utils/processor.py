@@ -6,21 +6,24 @@ from ..detection_and_tracking.detector import YOLODetector
 
 logger = logging.getLogger(__name__)
 
-def process_live_video(detector: YOLODetector, conf_threshold: float = 0.5):
+def process_live_video(detector: YOLODetector, conf_threshold: float = 0.5, 
+                      display_width: int = 640):
     """
     Process live video from webcam.
     
     Args:
         detector: YOLODetector instance
         conf_threshold: Confidence threshold for detections
+        display_width: Width of each frame in the display
     """
     fps_counter = FPSCounter()
     
     with VideoCapture(0) as video:
         logger.info("Video capture started")
-        process_video_stream(video, detector, fps_counter, conf_threshold)
+        process_video_stream(video, detector, fps_counter, conf_threshold, display_width)
 
-def process_video_file(detector: YOLODetector, video_path: str, conf_threshold: float = 0.5):
+def process_video_file(detector: YOLODetector, video_path: str, conf_threshold: float = 0.5,
+                      display_width: int = 640):
     """
     Process video file.
     
@@ -28,12 +31,13 @@ def process_video_file(detector: YOLODetector, video_path: str, conf_threshold: 
         detector: YOLODetector instance
         video_path: Path to video file
         conf_threshold: Confidence threshold for detections
+        display_width: Width of each frame in the display
     """
     fps_counter = FPSCounter()
     
     with VideoCapture(video_path) as video:
         logger.info(f"Processing video: {video_path}")
-        process_video_stream(video, detector, fps_counter, conf_threshold)
+        process_video_stream(video, detector, fps_counter, conf_threshold, display_width)
 
 def process_video_stream(video, detector: YOLODetector, fps_counter: FPSCounter, 
                         conf_threshold: float = 0.5, display_width: int = 640):
@@ -72,7 +76,8 @@ def process_video_stream(video, detector: YOLODetector, fps_counter: FPSCounter,
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-def process_image(detector: YOLODetector, image_path: str, conf_threshold: float = 0.5):
+def process_image(detector: YOLODetector, image_path: str, conf_threshold: float = 0.5,
+                 display_width: int = 640):
     """
     Process single image.
     
@@ -80,6 +85,7 @@ def process_image(detector: YOLODetector, image_path: str, conf_threshold: float
         detector: YOLODetector instance
         image_path: Path to image file
         conf_threshold: Confidence threshold for detections
+        display_width: Width of each frame in the display
     """
     logger.info(f"Processing image: {image_path}")
     
@@ -91,7 +97,11 @@ def process_image(detector: YOLODetector, image_path: str, conf_threshold: float
         results = detector.detect_and_track(image, conf_threshold)
         image_with_results = detector.draw_results(image, results)
         
-        display_frame = create_side_by_side_display(image, image_with_results)
+        display_frame = create_side_by_side_display(
+            image, 
+            image_with_results,
+            target_width=display_width
+        )
         cv2.imshow('Object Detection & Tracking', display_frame)
         cv2.waitKey(0)
         

@@ -6,12 +6,57 @@ import os
 import shutil
 from typing import List, Tuple, Dict, Optional, Union
 from pathlib import Path
+from collections import deque
+
+class TrajectoryManager:
+    """Manages object trajectories with fading effect."""
+    def __init__(self, max_points: int = 30, fade_steps: int = 10):
+        self.trajectories = {}  # track_id -> deque of points
+        self.max_points = max_points
+        self.fade_steps = fade_steps
+    
+    def update(self, track_id: int, center_point: tuple):
+        """Update trajectory for a tracked object."""
+        if track_id not in self.trajectories:
+            self.trajectories[track_id] = deque(maxlen=self.max_points)
+        self.trajectories[track_id].append(center_point)
+    
+    def draw_trajectories(self, frame: np.ndarray, active_track_ids: set):
+        """Draw trajectories with fading effect."""
+        # Remove trajectories of objects that are no longer tracked
+        current_ids = set(self.trajectories.keys())
+        for track_id in current_ids - active_track_ids:
+            del self.trajectories[track_id]
+        
+        # Draw active trajectories
+        for track_id in active_track_ids:
+            if track_id not in self.trajectories:
+                continue
+                
+            points = list(self.trajectories[track_id])
+            if len(points) < 2:
+                continue
+            
+            # Draw lines with fading effect
+            for i in range(len(points) - 1):
+                # Calculate alpha based on point age
+                alpha = (i + 1) / len(points)  # Newer points are more opaque
+                color = (0, 0, 255)  # Red color for trajectory
+                
+                # Draw line segment with calculated alpha
+                cv2.line(frame,
+                        (int(points[i][0]), int(points[i][1])),
+                        (int(points[i+1][0]), int(points[i+1][1])),
+                        color,
+                        thickness=2,
+                        lineType=cv2.LINE_AA)
 
 class YOLODetector:
     """
     A class to handle object detection and tracking using YOLOv8.
     """
-    def __init__(self, model_size: str = "yolov8n.pt", tracker: str = "bytetrack.yaml"):
+    def __init__(self, model_size: str = "yolov8n.pt", tracker: str = "bytetrack.yaml",
+                 trajectory_length: int = 30, fade_steps: int = 10):
         """
         Initialize the YOLO detector.
         
@@ -20,6 +65,8 @@ class YOLODetector:
                             Options: yolov8n.pt, yolov8s.pt, yolov8m.pt, yolov8l.pt, yolov8x.pt
                             Default is "yolov8n.pt" (smallest and fastest)
             tracker (str): Tracker configuration file. Options: "bytetrack.yaml", "botsort.yaml"
+            trajectory_length (int): Maximum number of points in trajectory
+            fade_steps (int): Number of steps for trajectory fade effect
         """
         self.logger = logging.getLogger(__name__)
         self.tracker = tracker
@@ -46,6 +93,12 @@ class YOLODetector:
         except Exception as e:
             self.logger.error(f"Error loading YOLO model: {str(e)}")
             raise
+
+        # Initialize trajectory manager with specified parameters
+        self.trajectory_manager = TrajectoryManager(
+            max_points=trajectory_length,
+            fade_steps=fade_steps
+        )
 
     def detect_and_track(self, frame: np.ndarray, conf_threshold: float = 0.5) -> List[Dict]:
         """
@@ -93,12 +146,23 @@ class YOLODetector:
             return []
 
     def draw_results(self, frame: np.ndarray, results: List[Dict]) -> np.ndarray:
-        """Draw detection and tracking results on the frame."""
+        """Draw detection and tracking results with trajectories on the frame."""
         draw_frame = frame.copy()
+        
+        # Keep track of active track IDs
+        active_track_ids = set()
         
         for obj in results:
             bbox = obj['bbox']
             track_id = obj.get('track_id')
+            
+            if track_id is not None:
+                active_track_ids.add(track_id)
+                # Calculate center point of bbox
+                center_x = (bbox[0] + bbox[2]) // 2
+                center_y = (bbox[1] + bbox[3]) // 2
+                # Update trajectory
+                self.trajectory_manager.update(track_id, (center_x, center_y))
             
             # Different colors for tracked vs untracked objects
             color = (0, 0, 255) if track_id is not None else (0, 255, 0)
@@ -122,5 +186,8 @@ class YOLODetector:
                        (bbox[0], bbox[1] - 10),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
                        color, 2)
+        
+        # Draw trajectories
+        self.trajectory_manager.draw_trajectories(draw_frame, active_track_ids)
             
         return draw_frame 

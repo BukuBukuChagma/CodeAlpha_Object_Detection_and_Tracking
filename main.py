@@ -31,6 +31,13 @@ def main():
     parser.add_argument('--conf', type=float, default=0.5,
                       help='Confidence threshold for detections (0-1)')
     
+    # Trajectory configuration
+    parser.add_argument('--trajectory-length', type=int, default=30,
+                   help='Maximum number of points in trajectory')
+    parser.add_argument('--fade-steps', type=int, default=10,
+                   help='Number of steps for trajectory fade effect')
+    
+    
     # Display parameters
     parser.add_argument('--display-width', type=int, default=640,
                       help='Width of each frame in the display')
@@ -41,15 +48,20 @@ def main():
         # Initialize detector with specified model and tracker
         detector = YOLODetector(
             model_size=args.model,
-            tracker=args.tracker
+            tracker=args.tracker,
+            trajectory_length=args.trajectory_length,
+            fade_steps=args.fade_steps
         )
         
         if args.webcam:
-            process_live_video(detector, conf_threshold=args.conf)
+            process_live_video(detector, conf_threshold=args.conf, 
+                             display_width=args.display_width)
         elif args.video:
-            process_video_file(detector, args.video, conf_threshold=args.conf)
+            process_video_file(detector, args.video, conf_threshold=args.conf,
+                             display_width=args.display_width)
         elif args.image:
-            process_image(detector, args.image, conf_threshold=args.conf)
+            process_image(detector, args.image, conf_threshold=args.conf,
+                        display_width=args.display_width)
             
     except Exception as e:
         logger.error(f"Error: {e}")
