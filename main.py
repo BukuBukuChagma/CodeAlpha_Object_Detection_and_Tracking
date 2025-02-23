@@ -1,7 +1,7 @@
 import cv2
 import logging
 import argparse
-from src.detection.detector import YOLODetector
+from src.detection_and_tracking.detector import YOLODetector
 from src.utils.processor import process_live_video, process_video_file, process_image
 
 # Set up logging

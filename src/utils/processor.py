@@ -2,7 +2,7 @@ import cv2
 import logging
 from .video_capture import VideoCapture
 from .display_utils import FPSCounter, create_side_by_side_display, add_fps_to_frames
-from ..detection.detector import YOLODetector
+from ..detection_and_tracking.detector import YOLODetector
 
 logger = logging.getLogger(__name__)
 
