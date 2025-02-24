@@ -10,12 +10,7 @@ python src/web/app.py
 
 ```bash
 pytest tests/test_api.py -v
-```
-
-## Run the tests in a specific browser
-
-```bash
-pytest tests/test_api.py -v --browser=chrome
+pytest tests/test_streaming.py -v
 ```
 
 ## Run Memurai server
