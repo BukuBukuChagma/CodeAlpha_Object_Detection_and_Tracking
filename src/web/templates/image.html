@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Image Detection</h1>
+            <a href="/" class="back-button">← Back to Home</a>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <div class="info-box">
+                    <h3>Supported Formats</h3>
+                    <p>JPG, PNG, BMP (Max size: 16MB)</p>
+                </div>
+
+                <section id="preview-section" class="preview-section hidden">
+                    <h3>Selected Image</h3>
+                    <img id="preview-image" alt="Preview">
+                </section>
+
+                <form id="upload-form" class="upload-form">
+                    <div class="file-input-container">
+                        <input type="file" id="image-input" accept=".jpg,.jpeg,.png,.bmp" required>
+                        <label for="image-input" class="file-label">Choose Image</label>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="conf-threshold">Confidence Threshold:</label>
+                            <input type="range" id="conf-threshold" min="0" max="1" step="0.1" value="0.5">
+                            <span id="conf-value">0.5</span>
+                        </div>
+                        <button type="submit" class="button">Process Image</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="results-section hidden" id="results-section">
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <h3>Original Image</h3>
+                        <img id="original-image" alt="Original Image">
+                    </div>
+                    <div class="image-wrapper">
+                        <h3>Processed Image</h3>
+                        <img id="processed-image" alt="Processed Image">
+                    </div>
+                </div>
+                <div class="detection-info">
+                    <h3>Detection Results</h3>
+                    <div id="detection-results"></div>
+                    <p>Processing Time: <span id="processing-time">-</span> seconds</p>
+                </div>
+            </section>
+
+            <div id="error-message" class="error-message hidden"></div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/image.js') }}"></script>
+</body>
+</html> 

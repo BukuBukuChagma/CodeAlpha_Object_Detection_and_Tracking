@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Processing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Video Processing</h1>
+            <a href="/" class="back-button">← Back to Home</a>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <div class="info-box">
+                    <h3>Supported Formats</h3>
+                    <p>MP4, AVI, MOV, MKV (Max size: 16MB)</p>
+                    <p class="note">Note: Videos are temporarily stored and will be automatically deleted after processing.</p>
+                </div>
+
+                <section id="preview-section" class="preview-section hidden">
+                    <h3>Selected Video</h3>
+                    <video id="preview-video" controls></video>
+                    <p class="video-info"></p>
+                </section>
+
+                <form id="upload-form" class="upload-form">
+                    <div class="file-input-container">
+                        <input type="file" id="video-input" accept=".mp4,.avi,.mov,.mkv" required>
+                        <label for="video-input" class="file-label">Choose Video</label>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="conf-threshold">Confidence Threshold:</label>
+                            <input type="range" id="conf-threshold" min="0" max="1" step="0.1" value="0.5">
+                            <span id="conf-value">0.5</span>
+                        </div>
+                        <button type="submit" class="button">Process Video</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="progress-section hidden" id="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p class="progress-text">Processing: <span id="progress-value">0</span>%</p>
+                <p class="status-text" id="status-text">Initializing...</p>
+            </section>
+
+            <section class="results-section hidden" id="results-section">
+                <div class="processing-info">
+                    <h3>Processing Results</h3>
+                    <div class="stats">
+                        <p>Processing Time: <span id="processing-time">-</span> seconds</p>
+                        <p>Frames Processed: <span id="frames-processed">-</span></p>
+                    </div>
+                    <div class="download-section">
+                        <p class="success-message">Video processing completed successfully!</p>
+                        <a id="download-link" class="button" download>Download Processed Video</a>
+                    </div>
+                </div>
+            </section>
+
+            <div id="error-message" class="error-message hidden"></div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/video.js') }}"></script>
+</body>
+</html> 

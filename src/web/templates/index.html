@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection & Tracking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Object Detection & Tracking</h1>
+        </header>
+
+        <main>
+            <div class="card-container">
+                <div class="card">
+                    <h2>Image Detection</h2>
+                    <p>Upload and process images for object detection</p>
+                    <a href="/image" class="button">Go to Image Detection</a>
+                </div>
+
+                <div class="card">
+                    <h2>Video Processing</h2>
+                    <p>Upload and process videos for object detection and tracking</p>
+                    <a href="/video" class="button">Go to Video Processing</a>
+                </div>
+
+                <div class="card">
+                    <h2>Live Webcam</h2>
+                    <p>Real-time object detection and tracking using your webcam</p>
+                    <a href="/webcam" class="button">Go to Webcam Stream</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html> 

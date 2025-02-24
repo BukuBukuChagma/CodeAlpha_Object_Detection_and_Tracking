@@ -1,6 +1,6 @@
-from .config import app  # Import from config
+from src.web.config import app
 from flask_socketio import SocketIO
-from flask import request, jsonify, send_from_directory
+from flask import request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import logging
 import time
@@ -9,10 +9,10 @@ import cv2
 import uuid
 import os
 
-from .utils import FileHandler
-from ..detection_and_tracking.detector import YOLODetector
-from .tasks import process_video, celery
-from .socket_handler import socketio, active_streams, WebcamStream
+from src.web.utils import FileHandler
+from src.detection_and_tracking.detector import YOLODetector
+from src.web.tasks import process_video, celery
+from src.web.socket_handler import socketio, active_streams, WebcamStream
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -391,6 +391,73 @@ def update_config():
             "success": False,
             "error": {
                 "code": "config_error",
+                "message": str(e)
+            }
+        }), 500
+
+@app.route('/')
+def index():
+    """Serve the main application page."""
+    return render_template('index.html')
+
+@app.route('/image')
+def image_page():
+    """Serve the image upload page."""
+    return render_template('image.html')
+
+@app.route('/video')
+def video_page():
+    """Serve the video upload page."""
+    return render_template('video.html')
+
+@app.route('/api/v1/cleanup', methods=['POST'])
+def cleanup_files():
+    """Clean up uploaded and processed files."""
+    try:
+        # Clean up upload directory
+        for file in file_handler.upload_folder.glob('*'):
+            try:
+                file.unlink()
+            except Exception as e:
+                logger.error(f"Error deleting file {file}: {e}")
+
+        # Clean up results directory
+        for file in file_handler.results_folder.glob('*'):
+            try:
+                file.unlink()
+            except Exception as e:
+                logger.error(f"Error deleting file {file}: {e}")
+
+        return jsonify({
+            "success": True,
+            "message": "Cleanup completed"
+        })
+    except Exception as e:
+        logger.error(f"Error during cleanup: {e}")
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "cleanup_error",
+                "message": str(e)
+            }
+        }), 500
+
+@app.route('/api/v1/video/<path:filename>')
+def serve_video(filename):
+    """Serve video files with proper MIME type."""
+    try:
+        return send_from_directory(
+            file_handler.results_folder, 
+            filename,
+            mimetype='video/mp4',
+            as_attachment=False
+        )
+    except Exception as e:
+        logger.error(f"Error serving video: {e}")
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "video_serve_error",
                 "message": str(e)
             }
         }), 500
