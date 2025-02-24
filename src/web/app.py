@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 import cv2
 import uuid
+import os
 
 from .utils import FileHandler
 from ..detection_and_tracking.detector import YOLODetector
@@ -145,7 +146,7 @@ def process_video_file():
                     "message": "No video file provided"
                 }
             }), 400
-        
+            
         file = request.files['video']
         
         # Validate filename
@@ -171,14 +172,18 @@ def process_video_file():
         # Get parameters
         conf_threshold = float(request.form.get('conf_threshold', 0.5))
         display_width = int(request.form.get('display_width', 640))
-        save_output = request.form.get('save_output', 'true').lower() == 'true'
+        save_output = request.form.get('save_output', 'false').lower() == 'true'
         
         # Save uploaded file
         file_path, filename = file_handler.save_upload(file, prefix='video')
         
+        # Ensure file exists and is readable
+        if not os.path.exists(file_path):
+            raise ValueError(f"Saved file not found at {file_path}")
+            
         # Start processing task
         task = process_video.delay(
-            file_path,
+            str(file_path),  # Convert Path to string
             conf_threshold=conf_threshold,
             display_width=display_width,
             save_output=save_output
@@ -187,8 +192,7 @@ def process_video_file():
         return jsonify({
             "success": True,
             "data": {
-                "task_id": task.id,
-                "status": "processing"
+                "task_id": task.id
             }
         })
         
@@ -317,6 +321,76 @@ def stop_stream(stream_id):
             "success": False,
             "error": {
                 "code": "stream_error",
+                "message": str(e)
+            }
+        }), 500
+
+# Add configuration endpoints
+@app.route('/api/v1/config', methods=['GET'])
+def get_config():
+    """Get current configuration."""
+    try:
+        config = {
+            'model': detector.model_name,  # Get model name 
+            'tracker': detector.tracker,
+            'conf_threshold': detector.conf_threshold,  # Default values
+            'trajectory_length': detector.trajectory_manager.max_points,
+            'fade_steps': detector.trajectory_manager.fade_steps,
+            'display_width': 640  # Default display width
+        }
+        
+        return jsonify({
+            "success": True,
+            "data": config
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting config: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "config_error",
+                "message": str(e)
+            }
+        }), 500
+
+@app.route('/api/v1/config', methods=['PUT'])
+def update_config():
+    """Update configuration."""
+    try:
+        data = request.get_json()
+        if not data:
+            raise ValueError("No configuration data provided")
+            
+        # Only allow updating certain parameters
+        if 'conf_threshold' in data:
+            conf_threshold = float(data['conf_threshold'])
+            if not 0 <= conf_threshold <= 1:
+                raise ValueError("conf_threshold must be between 0 and 1")
+            detector.conf_threshold = conf_threshold
+            
+        
+        if 'trajectory_length' in data:
+            trajectory_length = int(data['trajectory_length'])
+            if trajectory_length < 1:
+                raise ValueError("trajectory_length must be positive")
+            detector.trajectory_manager.max_points = trajectory_length
+            
+        if 'fade_steps' in data:
+            fade_steps = int(data['fade_steps'])
+            if fade_steps < 0:
+                raise ValueError("fade_steps cannot be negative")
+            detector.trajectory_manager.fade_steps = fade_steps
+            
+        # Return updated config
+        return get_config()
+        
+    except Exception as e:
+        logger.error(f"Error updating config: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "config_error",
                 "message": str(e)
             }
         }), 500
