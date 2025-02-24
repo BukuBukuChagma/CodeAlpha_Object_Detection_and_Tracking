@@ -3,7 +3,7 @@ from flask_socketio import SocketIOTestClient
 import time
 import json
 import base64
-from src.web.app import app, socketio
+from app import app, socketio
 from src.web.socket_handler import active_streams
 import threading
 import eventlet
