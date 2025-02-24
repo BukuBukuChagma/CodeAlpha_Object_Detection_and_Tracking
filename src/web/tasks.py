@@ -25,12 +25,16 @@ def process_video(self, file_path: str, conf_threshold: float = 0.5,
     cap = None
     out = None
     try:
+        logger.info(f"Starting video processing for file: {file_path}")
+        logger.info(f"File exists: {os.path.exists(file_path)}")
+        
         detector = YOLODetector()
         file_handler = FileHandler()
         
         # Open video
         cap = cv2.VideoCapture(file_path)
         if not cap.isOpened():
+            logger.error(f"Could not open video file at {file_path}")
             raise ValueError("Could not open video file")
             
         # Get video properties
