@@ -28,6 +28,7 @@ class WebcamStream:
         self.cap = None
         self.thread = None
         self.stop_event = Event()
+        self.latest_detections = []  # Store latest detections
         
     def start(self):
         """Start the streaming thread."""
@@ -59,6 +60,7 @@ class WebcamStream:
                 
             # Process frame
             results = self.detector.detect_and_track(frame, self.conf_threshold)
+            self.latest_detections = results  # Update latest detections
             processed_frame = self.detector.draw_results(frame, results)
             
             # Convert frame to base64
@@ -110,6 +112,30 @@ def handle_connect():
 def handle_disconnect():
     """Handle client disconnection."""
     logger.info('Client disconnected')
+
+@socketio.on('get_detections', namespace='/stream')
+def handle_get_detections(data):
+    """Handle request for current detections."""
+    try:
+        stream_id = data.get('stream_id')
+        if not stream_id or stream_id not in active_streams:
+            raise ValueError(f"Invalid stream ID: {stream_id}")
+            
+        # Get the latest detections from the stream
+        stream = active_streams[stream_id]
+        
+        emit('detections', {
+            'stream_id': stream_id,
+            'detections': stream.latest_detections if hasattr(stream, 'latest_detections') else [],
+            'timestamp': time.time()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting detections: {str(e)}")
+        emit('error', {
+            'code': 'detection_error',
+            'message': str(e)
+        })
 
 @socketio.on_error_default
 def default_error_handler(e):

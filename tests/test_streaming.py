@@ -223,6 +223,44 @@ def test_stream_flow(http_client, socket_client):
         except:
             pass
 
+def test_get_detections(http_client, socket_client):
+    """Test getting detections from stream."""
+    stream_id = None
+    try:
+        # Start stream
+        response = http_client.post('/api/v1/stream/start', data={
+            'conf_threshold': '0.5'
+        })
+        assert response.status_code == 200
+        stream_id = response.get_json()['data']['stream_id']
+        
+        # Connect socket
+        socket_client.connect(namespace='/stream')
+        
+        # Wait for connection
+        events = socket_client.get_received('/stream')
+        assert any(event['name'] == 'connect' for event in events)
+        
+        # Request detections
+        socket_client.emit('get_detections', {'stream_id': stream_id}, namespace='/stream')
+        
+        # Wait for response
+        events = socket_client.get_received('/stream')
+        assert any(event['name'] == 'detections' for event in events)
+        
+        # Verify detection data
+        detection_event = next(e for e in events if e['name'] == 'detections')
+        data = detection_event['args'][0]
+        assert 'stream_id' in data
+        assert 'detections' in data
+        assert 'timestamp' in data
+        assert data['stream_id'] == stream_id
+        
+    finally:
+        if stream_id in active_streams:
+            active_streams[stream_id].stop()
+            del active_streams[stream_id]
+
 @pytest.fixture(autouse=True)
 def cleanup():
     """Clean up any remaining streams after each test."""
