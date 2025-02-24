@@ -55,8 +55,9 @@ class YOLODetector:
     """
     A class to handle object detection and tracking using YOLOv8.
     """
-    def __init__(self, model_size: str = "yolov8n.pt", tracker: str = "bytetrack.yaml",
-                 trajectory_length: int = 30, fade_steps: int = 10):
+    def __init__(self, model_size: str = "yolov8n.pt", tracker: str = "bytetrack.yaml", 
+                 trajectory_length: int = 30, fade_steps: int = 10, 
+                 conf_threshold: float = 0.5, display_width: int = 640):
         """
         Initialize the YOLO detector.
         
@@ -67,9 +68,14 @@ class YOLODetector:
             tracker (str): Tracker configuration file. Options: "bytetrack.yaml", "botsort.yaml"
             trajectory_length (int): Maximum number of points in trajectory
             fade_steps (int): Number of steps for trajectory fade effect
+            conf_threshold (float): Confidence threshold for detections
+            display_width (int): Width of the display window
         """
         self.logger = logging.getLogger(__name__)
+        self.model_name = model_size
         self.tracker = tracker
+        self.conf_threshold = conf_threshold
+        self.display_width = display_width
         
         # Setup weights directory
         self.weights_dir = Path("yolo/weights")

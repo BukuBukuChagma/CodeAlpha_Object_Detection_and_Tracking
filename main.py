@@ -50,7 +50,9 @@ def main():
             model_size=args.model,
             tracker=args.tracker,
             trajectory_length=args.trajectory_length,
-            fade_steps=args.fade_steps
+            fade_steps=args.fade_steps,
+            conf_threshold=args.conf,
+            display_width=args.display_width
         )
         
         if args.webcam:
