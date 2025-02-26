@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Webcam Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Live Webcam Detection</h1>
+            <a href="/" class="back-button">← Back to Home</a>
+        </header>
+
+        <main>
+            <div class="webcam-container">
+                <!-- Stream controls -->
+                <div class="controls-section">
+                    <div class="control-group">
+                        <label for="conf-threshold">Confidence Threshold:</label>
+                        <input type="range" id="conf-threshold" min="0" max="1" step="0.1" value="0.5">
+                        <span id="conf-value">0.5</span>
+                    </div>
+                    <div class="button-group">
+                        <button id="start-stream" class="button">Start Stream</button>
+                        <button id="stop-stream" class="button hidden">Stop Stream</button>
+                    </div>
+                </div>
+
+                <!-- Stream display -->
+                <div id="stream-container" class="stream-container hidden">
+                    <div class="video-wrapper">
+                        <video id="webcam-video" autoplay playsinline></video>
+                        <canvas id="output-canvas"></canvas>
+                    </div>
+                    
+                    <!-- Stats display -->
+                    <div class="stats-container">
+                        <div class="stat-item">
+                            <span class="stat-label">FPS:</span>
+                            <span id="fps-counter">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Objects Detected:</span>
+                            <span id="objects-counter">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error messages -->
+            <div id="error-message" class="error-message hidden"></div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/webcam.js') }}"></script>
+</body>
+</html> 

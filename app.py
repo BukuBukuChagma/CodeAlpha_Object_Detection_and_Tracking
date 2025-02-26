@@ -410,6 +410,11 @@ def video_page():
     """Serve the video upload page."""
     return render_template('video.html')
 
+@app.route('/webcam')
+def webcam_page():
+    """Serve the webcam streaming page."""
+    return render_template('webcam.html')
+
 @app.route('/api/v1/cleanup', methods=['POST'])
 def cleanup_files():
     """Clean up uploaded and processed files."""
