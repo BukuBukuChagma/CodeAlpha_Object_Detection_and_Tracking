@@ -26,13 +26,8 @@ detector = YOLODetector()
 socketio.init_app(app, 
                  cors_allowed_origins="*",
                  async_mode='threading',
-                 logger=True,
-                 engineio_logger=True,
-                 ping_timeout=5,
-                 ping_interval=1,
-                 transports=['websocket'],
-                 always_connect=True,
-                 path='socket.io')
+                 logger=False,
+                 engineio_logger=False)
 
 # Basic error handler
 @app.errorhandler(Exception)
