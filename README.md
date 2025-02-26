@@ -123,7 +123,7 @@ This project is a comprehensive object detection and tracking system that uses Y
 
 ## API Documentation
 
-For detailed API documentation, please refer to the [API Documentation](docs/api.md) in the docs directory.
+For detailed API documentation, please refer to the [API Documentation](docs/) in the docs directory.
 
 ## Project Structure
 
