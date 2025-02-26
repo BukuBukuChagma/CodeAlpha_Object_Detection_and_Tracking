@@ -123,7 +123,8 @@ class YOLODetector:
                 source=frame, 
                 conf=conf_threshold,
                 persist=True,  # Persist tracks between frames
-                tracker=self.tracker
+                tracker=self.tracker,
+                verbose = False
             )[0]
             
             # Process results
