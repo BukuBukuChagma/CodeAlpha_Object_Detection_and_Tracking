@@ -29,6 +29,8 @@ class WebcamStream:
         self.thread = None
         self.stop_event = Event()
         self.latest_detections = []  # Store latest detections
+        self.last_frame_time = 0
+        self.fps = 0
         
     def start(self):
         """Start the streaming thread."""
@@ -54,6 +56,12 @@ class WebcamStream:
     def _stream_thread(self):
         """Thread function for streaming."""
         while not self.stop_event.is_set():
+            # Calculate FPS
+            current_time = time.time()
+            if self.last_frame_time > 0:
+                self.fps = 1.0 / (current_time - self.last_frame_time)
+            self.last_frame_time = current_time
+            
             success, frame = self.cap.read()
             if not success:
                 break
@@ -72,6 +80,7 @@ class WebcamStream:
                 'stream_id': self.stream_id,
                 'frame': f"data:image/jpeg;base64,{frame_base64}",
                 'detections': results,
+                'fps': self.fps,
                 'timestamp': time.time()
             }, namespace='/stream')
             
