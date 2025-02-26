@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import cv2
 import numpy as np
-from src.web.app import app
+from app import app
 from src.web.utils import FileHandler
 import time
 

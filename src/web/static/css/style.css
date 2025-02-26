@@ -355,7 +355,7 @@ button:disabled {
     position: relative;
 }
 
-.video-wrapper {
+.stream-video-wrapper {
     position: relative;
     width: 100%;
     background: #000;
