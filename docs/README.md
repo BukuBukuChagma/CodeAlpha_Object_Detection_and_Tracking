@@ -6,7 +6,7 @@
 
 ## Commands
 
-[Commands](./commands.md)
+[Commands](./usefull_commands.md)
 
 
 
