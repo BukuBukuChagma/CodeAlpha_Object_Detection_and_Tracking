@@ -24,7 +24,7 @@ class WebcamStream:
         self.stream_id = stream_id
         self.detector = detector
         self.conf_threshold = conf_threshold
-        self.frame_rate = frame_rate if not app.config['TESTING'] else 2
+        self.frame_rate = frame_rate
         self.cap = None
         self.thread = None
         self.stop_event = Event()
@@ -32,7 +32,7 @@ class WebcamStream:
         
     def start(self):
         """Start the streaming thread."""
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
         if not self.cap.isOpened():
             raise ValueError("Could not open webcam")
             
@@ -70,7 +70,7 @@ class WebcamStream:
             # Emit frame and detections
             socketio.emit('frame', {
                 'stream_id': self.stream_id,
-                'frame': frame_base64,
+                'frame': f"data:image/jpeg;base64,{frame_base64}",
                 'detections': results,
                 'timestamp': time.time()
             }, namespace='/stream')
@@ -92,11 +92,8 @@ def handle_connect():
     """Handle client connection."""
     try:
         logger.info('Client attempting to connect')
-        # Log connection details
         sid = request.sid if hasattr(request, 'sid') else 'unknown'
         logger.info(f'Client SID: {sid}')
-        
-        # Try to emit and verify connection
         emit('connect', {
             'status': 'connected',
             'timestamp': time.time()
@@ -126,7 +123,7 @@ def handle_get_detections(data):
         
         emit('detections', {
             'stream_id': stream_id,
-            'detections': stream.latest_detections if hasattr(stream, 'latest_detections') else [],
+            'detections': stream.latest_detections,
             'timestamp': time.time()
         })
         
