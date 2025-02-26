@@ -7,7 +7,7 @@ from ..detection_and_tracking.detector import YOLODetector
 logger = logging.getLogger(__name__)
 
 def process_live_video(detector: YOLODetector, conf_threshold: float = 0.5, 
-                      display_width: int = 640):
+                      display_width: int = 640, camera_id: int = 1):
     """
     Process live video from webcam.
     
@@ -18,7 +18,7 @@ def process_live_video(detector: YOLODetector, conf_threshold: float = 0.5,
     """
     fps_counter = FPSCounter()
     
-    with VideoCapture(0) as video:
+    with VideoCapture(camera_id) as video:
         logger.info("Video capture started")
         process_video_stream(video, detector, fps_counter, conf_threshold, display_width)
 
