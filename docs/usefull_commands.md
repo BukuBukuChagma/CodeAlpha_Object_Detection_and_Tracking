@@ -1,9 +1,17 @@
-# Some commands
+# Commands
 
-## Run the server
+Here are some commands on how to run certain things
+
+## Run the cli version
 
 ```bash
-python src/web/app.py
+python main.py --{webcam/image/video} # also need to provide the path to image/video if using image/video as arguement
+
+``` 
+## Run the flask server
+
+```bash
+python app.py
 ```
 
 ## Run the tests

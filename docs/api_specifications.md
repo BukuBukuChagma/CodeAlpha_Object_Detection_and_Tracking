@@ -189,7 +189,7 @@ For real-time webcam streaming, the WebSocket sends frames in the following form
 ```
 
 ## Implementation Notes
-1. All file uploads have a size limit of 100MB
+1. All file uploads have a size limit of 16MB
 2. Supported image formats: JPG, PNG, BMP
 3. Supported video formats: MP4, AVI, MOV
 4. WebSocket stream uses JPEG compression for frames
